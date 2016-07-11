@@ -200,7 +200,7 @@ void TextBox::draw(NVGcontext* ctx) {
     float clipY = mPos.y() + 1.0f;
     float clipWidth = mSize.x() - unitWidth - spinArrowsWidth - 2 * xSpacing + 2.0f;
     float clipHeight = mSize.y() - 3.0f;
-    nvgScissor(ctx, clipX, clipY, clipWidth, clipHeight);
+    nvgIntersectScissor(ctx, clipX, clipY, clipWidth, clipHeight);
 
     Vector2i oldDrawPos(drawPos);
     drawPos.x() += mTextOffset;

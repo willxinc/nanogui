@@ -143,11 +143,11 @@ void TabWidget::draw(NVGcontext* ctx) {
 
     for (int i = 0; i < 3; ++i) {
         if (i == 0)
-            nvgScissor(ctx, mPos.x(), mPos.y(), activeArea.first.x() + 1, mSize.y());
+            nvgIntersectScissor(ctx, mPos.x(), mPos.y(), activeArea.first.x() + 1, mSize.y());
         else if (i == 1)
-            nvgScissor(ctx, mPos.x() + activeArea.second.x(), mPos.y(), mSize.x() - activeArea.second.x(), mSize.y());
+            nvgIntersectScissor(ctx, mPos.x() + activeArea.second.x(), mPos.y(), mSize.x() - activeArea.second.x(), mSize.y());
         else
-            nvgScissor(ctx, mPos.x(), mPos.y() + tabHeight + 2, mSize.x(), mSize.y());
+            nvgIntersectScissor(ctx, mPos.x(), mPos.y() + tabHeight + 2, mSize.x(), mSize.y());
 
         nvgBeginPath(ctx);
         nvgStrokeWidth(ctx, 1.0f);
