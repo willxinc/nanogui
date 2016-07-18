@@ -74,18 +74,32 @@ bool VScrollPanel::mouseMotionEvent(const Vector2i &p, const Vector2i &rel, int 
     return mChildren[0]->mouseMotionEvent(p + Vector2i(0, shift), rel, button, modifiers);
 }
 
-void VScrollPanel::draw(NVGcontext *ctx) {
-    if (mChildren.empty())
-        return;
-    Widget *child = mChildren[0];
-    mChildPreferredHeight = child->preferredSize(ctx).y();
-    float scrollh = height() *
-        std::min(1.0f, height() / (float) mChildPreferredHeight);
+void VScrollPanel::draw(NVGcontext *ctx){
+	if (mChildren.empty())
+		return;
+	Widget *child = mChildren[0];
+	mChildPreferredHeight = child->preferredSize(ctx).y();
+	float scrollh = height() *
+		std::min(1.0f, height() / (float)mChildPreferredHeight);
 
-    nvgSave(ctx);
-    nvgTranslate(ctx, mPos.x(), mPos.y());
-    nvgIntersectScissor(ctx, 0, 0, mSize.x(), mSize.y());
-    nvgTranslate(ctx, 0, -mScroll*(mChildPreferredHeight - mSize.y()));
+	nvgSave(ctx);
+	nvgTranslate(ctx, mPos.x(), mPos.y());
+	nvgIntersectScissor(ctx, 0, 0, mSize.x(), mSize.y());
+
+	float offset = -mScroll*(mChildPreferredHeight - mSize.y());
+	nvgTranslate(ctx, 0, -mScroll*(mChildPreferredHeight - mSize.y()));
+
+
+	Widget *parentWindow = (Widget*)window();
+
+	for (auto widgets : parentWindow->parent()->children()){
+		if (Popup* derived = dynamic_cast<Popup*>(widgets)){
+			if (derived->visible()){
+				derived->setAnchorHeight(30 - offset);
+			}
+		}
+	}
+
     if (child->visible())
         child->draw(ctx);
     nvgRestore(ctx);
