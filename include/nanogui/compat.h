@@ -14,7 +14,7 @@
 #include <stdio.h>
 
 #ifdef _MSC_VER
-#define NANOGUI_SNPRINTF _snprintf
+#define NANOGUI_SNPRINTF _snprintf_s
 #else
 #define NANOGUI_SNPRINTF snprintf
 #endif
