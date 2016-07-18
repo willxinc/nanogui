@@ -200,8 +200,6 @@ void TextBox::draw(NVGcontext* ctx) {
     float clipY = mPos.y() + 1.0f;
     float clipWidth = mSize.x() - unitWidth - spinArrowsWidth - 2 * xSpacing + 2.0f;
     float clipHeight = mSize.y() - 3.0f;
-
-	nvgSave(ctx);
     nvgIntersectScissor(ctx, clipX, clipY, clipWidth, clipHeight);
 
     Vector2i oldDrawPos(drawPos);
@@ -274,7 +272,8 @@ void TextBox::draw(NVGcontext* ctx) {
             nvgStroke(ctx);
         }
     }
-	nvgRestore(ctx);
+
+    nvgResetScissor(ctx);
 }
 
 bool TextBox::mouseButtonEvent(const Vector2i &p, int button, bool down,

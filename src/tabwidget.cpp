@@ -141,9 +141,7 @@ void TabWidget::draw(NVGcontext* ctx) {
     int tabHeight = mHeader->preferredSize(ctx).y();
     auto activeArea = mHeader->activeButtonArea();
 
-
     for (int i = 0; i < 3; ++i) {
-        nvgSave(ctx);
         if (i == 0)
             nvgIntersectScissor(ctx, mPos.x(), mPos.y(), activeArea.first.x() + 1, mSize.y());
         else if (i == 1)
@@ -163,7 +161,7 @@ void TabWidget::draw(NVGcontext* ctx) {
                        mSize.y() - tabHeight - 2, mTheme->mButtonCornerRadius);
         nvgStrokeColor(ctx, mTheme->mBorderDark);
         nvgStroke(ctx);
-        nvgRestore(ctx);
+        nvgResetScissor(ctx);
     }
 
     Widget::draw(ctx);
