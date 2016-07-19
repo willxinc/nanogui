@@ -94,7 +94,7 @@ void VScrollPanel::draw(NVGcontext *ctx){
 
 	for (auto widgets : parentWindow->parent()->children()){
 		if (Popup* derived = dynamic_cast<Popup*>(widgets)){
-			if (derived->visible()){
+			if (derived->parentWindow() == parentWindow && derived->visible()){
 				derived->setAnchorHeight(30 - offset);
 			}
 		}
