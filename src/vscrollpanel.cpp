@@ -126,6 +126,10 @@ void VScrollPanel::draw(NVGcontext *ctx){
     nvgFill(ctx);
 }
 
+float VScrollPanel::getOffset(){
+	return -mScroll*(mChildPreferredHeight - mSize.y());
+}
+
 void VScrollPanel::save(Serializer &s) const {
     Widget::save(s);
     s.set("childPreferredHeight", mChildPreferredHeight);
