@@ -20,13 +20,15 @@
 #include <iostream>
 
 #if defined(_WIN32)
-#define NOMINMAX
-#undef APIENTRY
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#define GLFW_EXPOSE_NATIVE_WGL
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
+#  define NOMINMAX
+#  undef APIENTRY
+
+#  define WIN32_LEAN_AND_MEAN
+#  include <windows.h>
+
+#  define GLFW_EXPOSE_NATIVE_WGL
+#  define GLFW_EXPOSE_NATIVE_WIN32
+#  include <GLFW/glfw3native.h>
 #endif
 
 /* Allow enforcing the GL2 implementation of NanoVG */
@@ -70,6 +72,7 @@ static float get_pixel_ratio(GLFWwindow *window) {
     return (float)fbSize[0] / (float)size[0];
 #endif
 }
+
 Screen::Screen()
     : Widget(nullptr), mGLFWWindow(nullptr), mNVGContext(nullptr),
       mCursor(Cursor::Arrow), mBackground(0.3f, 0.3f, 0.32f),
@@ -252,6 +255,15 @@ void Screen::initialize(GLFWwindow *window, bool shutdownGLFWOnDestruct) {
         glfwSetWindowSize(window, mSize.x() * mPixelRatio, mSize.y() * mPixelRatio);
 #endif
 
+#if defined(NANOGUI_GLAD)
+    if (!gladInitialized) {
+        gladInitialized = true;
+        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+            throw std::runtime_error("Could not initialize GLAD!");
+        glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
+    }
+#endif
+
     /* Detect framebuffer properties and set up compatible NanoVG context */
     GLint nStencilBits = 0, nSamples = 0;
     glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
@@ -316,7 +328,12 @@ void Screen::setCaption(const std::string &caption) {
 
 void Screen::setSize(const Vector2i &size) {
     Widget::setSize(size);
+
+#if defined(_WIN32)
+    glfwSetWindowSize(mGLFWWindow, size.x() * mPixelRatio, size.y() * mPixelRatio);
+#else
     glfwSetWindowSize(mGLFWWindow, size.x(), size.y());
+#endif
 }
 
 void Screen::drawAll() {
@@ -352,7 +369,8 @@ void Screen::drawWidgets() {
     glViewport(0, 0, mFBSize[0], mFBSize[1]);
 
     /* Calculate pixel ratio for hi-dpi devices. */
-    mPixelRatio = (float) mFBSize[0] / (float) mSize[0];
+    if (mSize[0])
+        mPixelRatio = (float) mFBSize[0] / (float) mSize[0];
     nvgBeginFrame(mNVGContext, mSize[0], mSize[1], mPixelRatio);
 
     draw(mNVGContext);
@@ -368,20 +386,26 @@ void Screen::drawWidgets() {
             float bounds[4];
             nvgFontFace(mNVGContext, "sans");
             nvgFontSize(mNVGContext, 15.0f);
-            nvgTextAlign(mNVGContext, NVG_ALIGN_CENTER | NVG_ALIGN_TOP);
+            nvgTextAlign(mNVGContext, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
             nvgTextLineHeight(mNVGContext, 1.1f);
             Vector2i pos = widget->absolutePosition() +
                            Vector2i(widget->width() / 2, widget->height() + 10);
 
-            nvgTextBoxBounds(mNVGContext, pos.x(), pos.y(), tooltipWidth,
-                             widget->tooltip().c_str(), nullptr, bounds);
+            nvgTextBounds(mNVGContext, pos.x(), pos.y(),
+                            widget->tooltip().c_str(), nullptr, bounds);
+            int h = (bounds[2] - bounds[0]) / 2;
+            if (h > tooltipWidth / 2) {
+                nvgTextAlign(mNVGContext, NVG_ALIGN_CENTER | NVG_ALIGN_TOP);
+                nvgTextBoxBounds(mNVGContext, pos.x(), pos.y(), tooltipWidth,
+                                widget->tooltip().c_str(), nullptr, bounds);
 
+                h = (bounds[2] - bounds[0]) / 2;
+            }
             nvgGlobalAlpha(mNVGContext,
                            std::min(1.0, 2 * (elapsed - 0.5f)) * 0.8);
 
             nvgBeginPath(mNVGContext);
             nvgFillColor(mNVGContext, Color(0, 255));
-            int h = (bounds[2] - bounds[0]) / 2;
             nvgRoundedRect(mNVGContext, bounds[0] - 4 - h, bounds[1] - 4,
                            (int) (bounds[2] - bounds[0]) + 8,
                            (int) (bounds[3] - bounds[1]) + 8, 3);
